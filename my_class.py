@@ -32,24 +32,24 @@ class AddtextsBook(UserDict):
         new_list1 = []
         for i in self.data.values():
             value_birthday = "No birthday date"
-            name_value = f"Name : {i.name.value} "
+            name_value = f"{i.name.value} "
             phone_value = f" {[el.value for el in i.phones]}"
-            birthday_value = f"Birthday {i.birthday.value if i.birthday else value_birthday}"
+            birthday_value = f"{i.birthday.value.strftime('%Y-%m-%d') if i.birthday else value_birthday}"
             
             new_list = [name_value, phone_value, birthday_value]
             new_list1.append(new_list)
-            count += 1
             if count == int(num):
-                result_list[page] = self.create_print_page(page, new_list1)
+                result_list[page] = self.create_print_page(page, new_list1, True)
                 new_list1.clear()
                 page += 1
                 count = 0
+            count += 1
 
-        result_list[page] = self.create_print_page(page, new_list1)
+        result_list[page] = self.create_print_page(page, new_list1, True)
 
         return result_list
 
-    def create_print_page(self, page:int, contacts:list) -> str:
+    def create_print_page(self, page:int, contacts:list, flag: bool) -> str:
         result = ""
         n = 12
         pattern = r"[\[\'\'\"\"\]]"  # видаляємо зайве
@@ -57,37 +57,58 @@ class AddtextsBook(UserDict):
             n = 11
         elif page > 99:
             n = 10
-
-        result += " {:^90}".format(" "*31 + "_"*30 + " "*29) + "\n"
-        result += " {:^92}".format("|" + " "*n +f"Page {page}" + " "*12 + "|") + "\n"
-        result += " {:<90}".format(" "*30 + "|" + "_"*30 + "|" + " "*29) + "\n"
-
-        for i in range(0, len(contacts)):
-            name_value, phone_value, birthday_value = contacts[i]
-            p = phone_value.split(",")
-            count = 1 
-
-            if len(p) > 1:
-                for iii in p:
-                    new_i = re.sub(pattern, "", iii)
-                    if count == 1 and i == 0:
-                        result += " {:^90}".format("_"*92) + "\n"
-                        result += "| {:<29}| {:<29}| {:<29}|".format(name_value, f"Phone {count} :{new_i}", birthday_value) + "\n"
-                    else:
-                        result += "| {:<29}| {:<29}| {:<29}|".format("", f"Phone {count} :{new_i}", "") + "\n"
-                    count += 1
-            
+        if contacts:
+            if flag:
+                x = "Page" 
+                result += " {:^90}".format(" "*31 + "_"*30 + " "*29) + "\n"
+                result += " {:^92}".format("|" + " "*n +f"{x} {page}" + " "*12 + "|") + "\n"
+                result += " {:<90}".format(" "*30 + "|" + "_"*30 + "|" + " "*29) + "\n"
             else:
-                new_i = re.sub(pattern, "", phone_value)
-                if i == 0:
-                    result += " {:^90}".format("_"*92) + "\n"
-                else:
-                    result += "{:^90}".format("|" + "_"*30 +"|"+ "_"*30 +"|"+ "_"*30 +"|") + "\n"
-                result += "| {:<29}| {:<29}| {:<29}|".format(name_value, f"Phone {count} :{new_i}", birthday_value) + "\n"
-        
-        result += "{:^90}".format("|" + "_"*30 +"|"+ "_"*30 +"|"+ "_"*30 +"|") + "\n"
-        return result
+                x = "Coincidence"
+                result += " {:^90}".format(" "*31 + "_"*30 + " "*29) + "\n"
+                result += " {:^92}".format("|" + " "*(n-4) +f"{page} {x}" + " "*9 + "|") + "\n"
+                result += " {:<90}".format(" "*30 + "|" + "_"*30 + "|" + " "*29) + "\n"
 
+
+            for i in range(0, len(contacts)):
+                name_value, phone_value, birthday_value = contacts[i]
+                p = str(phone_value).split(",")
+                count = 1 
+
+                if len(p) > 1:
+                    for iii in p:
+                        new_i = re.sub(pattern, "", iii)
+                        if count == 1 and i == 0:
+                            result += " {:^90}".format("_"*92) + "\n"
+                            result += "| {:<29}| {:<29}| {:<29}|".format(f"Name : {name_value}", f"Phone {count} :{new_i}", f"Birthday {birthday_value}") + "\n"
+                        else:
+                            result += "| {:<29}| {:<29}| {:<29}|".format("", f"Phone {count} :{new_i}", "") + "\n"
+                        count += 1
+                
+                else:
+                    new_i = re.sub(pattern, "", phone_value)
+                    if i == 0:
+                        result += " {:^90}".format("_"*92) + "\n"
+                    else:
+                        result += "{:^90}".format("|" + "_"*30 +"|"+ "_"*30 +"|"+ "_"*30 +"|") + "\n"
+                    result += "| {:<29}| {:<29}| {:<29}|".format(f"Name : {name_value}", f"Phone {count} :{new_i}", f"Birthday {birthday_value}") + "\n"
+            
+            result += "{:^90}".format("|" + "_"*30 +"|"+ "_"*30 +"|"+ "_"*30 +"|") + "\n"
+            return result
+        return None
+
+    def search_contacts(self, name: list):
+        dict_contacts = {}
+        text = f"Nothing found"
+        if name:
+            num = 0
+            for i in name:
+                birthday = self.data[i].birthday.value.strftime('%Y-%m-%d') if self.data[i].birthday else "No birthday date"
+                dict_contacts[num] = [str(self.data[i].name), f" {self.data[i].phones}", birthday]
+                num += 1
+            text = self.create_print_page(len(dict_contacts), dict_contacts, False)
+        
+        return text
 
 class Field:
 
@@ -220,7 +241,7 @@ class Record:
             return f"{days_birthday.days} days, {hours} hours, {minutes} minutes, {seconds} seconds"
 
     def __str__(self):
-        return "{}{}{}".format(self.name, " " + ", ".join([str(p) for p in self.phones]) if self.phones else "", " " + f"{self.days_to_birthday() if self.birthday else ''}")
+        return "{}{}{}".format(self.name, " " + ", ".join([str(p) for p in self.phones]) if self.phones else "", " " + f"{self.birthday.value.strftime('%Y-%m-%d') if self.birthday else ''}")
 
 class IncorrectDateFormat(Exception):
     pass

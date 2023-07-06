@@ -1,8 +1,29 @@
+import pickle
+import re
+
 from my_class import AddtextsBook, Record, Name, Phone, Birthday, IncorrectDateFormat, IncorrectPhoneeFormat
 
-
+works_bot = True
 adress_book = AddtextsBook()
-flag_exit = True
+
+# Зберігає книгу контактів
+def save_adress_book(adress_book):
+    with open("Save_adress_book.bin", "wb") as file:
+        pickle.dump(adress_book, file)
+
+# Відповідає за завантаження книги контактів яку зберегли минулого разу
+def load_adress_book():
+    with open("Save_adress_book.bin", "rb") as file:
+        deserialized_adress_book = pickle.load(file)
+        return deserialized_adress_book
+    
+# Відповідає за те як саме почати роботу
+def start_work_bot():
+    input_uzer = input("Download contact book? Y/N ---> ").lower()
+    if input_uzer in "y n":
+        if input_uzer == "y":
+            print("Downloading the contact book...")
+            return load_adress_book()
 
 # Обробка помилок.
 def input_error(func):
@@ -83,10 +104,9 @@ def days_to_birthday(*args: str):
     
 # Повертає сторінки книги контактів з кількістю N контактів на сторінці
 @input_error
-def show_page(*args:str, count=5) -> None:
+def show_page(*args:str) -> None:
     n = 1
-    if len(args) >= 1:
-        count = args[0]
+    count = args[0] if len(args) >= 1 else 5
     c = adress_book.iterator(count)
     for _ in range(1000):
         try:
@@ -101,6 +121,17 @@ def show_page(*args:str, count=5) -> None:
             return ""
         print(text)
         n += 1
+
+# Знаходить за літерами та цифрами контакти 
+@input_error
+def search(*args:str) -> str:
+    pattern = rf"{args[0].lower()}"
+    coincidence_list = []
+    for k, v in adress_book.data.items():
+        if re.findall(pattern, str(v).lower()):
+            coincidence_list.append(f"{k}")
+    return adress_book.search_contacts(coincidence_list)
+        
 
 # Пояснює команди та надає шаблони
 def helper(*_):
@@ -126,8 +157,8 @@ def hello(*_):
 
 # Зупиняє роботу асистента.
 def exit_uzer(*_):
-    global flag_exit
-    flag_exit = False
+    global works_bot 
+    works_bot = False
     return "Good bye!"
     
 
@@ -158,7 +189,8 @@ COMMANDS = {
     helper : ("help", ), # Пояснює команди та надає шаблони *
     phone : ("phone", ), # Виводить номер телефону за ім'ям *
     remove_phones : ("remove phone", ), # Видаляє телефон *
-    show_page : ("show page", ) # Виводить книгу контактів посторінково *
+    show_page : ("show page", ), # Виводить книгу контактів посторінково *
+    search : ("search", ) # Пошук в книги контактів за кількома цифрами номера телефону або літерами імені тощо.
 }
 
 # Знаходить команду.
@@ -170,7 +202,8 @@ def handler(uzer_input: str):
             if uzer_input.lower().startswith(a_com):
                 found_keywords.append(a_com)
     comannds = list(filter(lambda x: len(x) == max(len(com) for com in found_keywords), found_keywords))
-    
+    if not comannds:
+        return "There is no such command"
     for command, kwds in COMMANDS.items():
         for kwd in kwds:
             if comannds[0].startswith(kwd) and len(comannds[0]) == len(kwd):
@@ -180,11 +213,20 @@ def handler(uzer_input: str):
 
 @input_error
 def main():
-    while flag_exit: 
+    while works_bot:
+        save_adress_book(adress_book)
         uzer_input = input("-->")
+        if not uzer_input:
+            print("You have not entered anything")
+            continue
         com, data = handler(uzer_input)
-        print(com, data)
+        if com == "There is no such command":
+            print(com)
+            continue
         print(com(*data))
 
 if __name__ == "__main__":
+    load_book = start_work_bot()
+    if load_book:
+        adress_book = load_book
     main()
