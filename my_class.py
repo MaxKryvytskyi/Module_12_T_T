@@ -8,10 +8,12 @@ class AddtextsBook(UserDict):
     def add_record(self, record):
         if record.name.value not in self.keys():
             self.data[record.name.value] = record
-            return (True, " ")
+            return f"{record}add successful"
         else:
-            return (False, "Name already exist. Try add phone command for add extra phone.")
-    
+            return f"Contact with name {record.name} already exist." \
+                "Try add phone command for add extra phone."
+
+
     def iterator(self, num:int) -> str:
         result = self.create_page(num)
         if result == None:
@@ -50,11 +52,9 @@ class AddtextsBook(UserDict):
     def create_print_page(self, page:int, contacts:list) -> str:
         result = ""
         n = 12
-
         pattern = r"[\[\'\'\"\"\]]"  # видаляємо зайве
         if page > 9:
             n = 11
-
         elif page > 99:
             n = 10
 
@@ -104,8 +104,14 @@ class Field:
         if value:
             self.__value = value
     
+    def __str__(self):
+        return self.value
+    
     def __repr__(self) -> str:
-        return f"{self.__value}"
+        return str(self)
+    
+    def __eq__(self, other: object) -> bool:
+        return self.value == other.value
 
 
 class Name(Field):
@@ -135,9 +141,6 @@ class Phone(Field):
                 self.__value = "+380" + correct_phone # "123456789"
             else:
                 raise IncorrectPhoneeFormat
-        else:
-            self.__value = "No Phone"
-            
 
 class Birthday(Field):
 
@@ -158,27 +161,23 @@ class Birthday(Field):
 
 class Record:
 
-    def __init__(self, name: str, phones=None, birthday=None):
+    def __init__(self, name: str, phone=None, birthday=None):
         self.name = name
         self.phones = []
         self.birthday = birthday
         if birthday:
             self.add_to_birthday(birthday)
-        if type(phones) == list:
-            self.phones.extend(phones)
-        else:
-            self.phones.append(phones)
+        if phone:
+            self.phones.append(phone)
 
+
+    
     # Додає номер 
     def add_phone(self, phones: Phone) -> None:
-        print(phones.value)
-        if phones.value not in [phones.value for phones in self.phones]:
-            if "No Phone" in [phones.value for phones in self.phones]:
-                self.phones[0] = phones
-            else:
-                self.phones.append(phones)
-        else:
-            return f"This phone already added."
+        if phones not in self.phones:
+            self.phones.append(phones)
+            return f"Phone {phones} add to contact {self.name}"
+        return f"The contact {self.name} already has the phone {phones}"
 
     # Видаляє номер 
     def remove_phone(self, phones: Phone) -> None:
@@ -187,15 +186,12 @@ class Record:
                 self.phones.remove(n)
 
     # Заміна номера А на номер Б
-    def edit_phone(self, old_phone: Phone, new_phone: Phone) -> None:
-        if old_phone.value == new_phone.value or new_phone.value in [phone.value for phone in self.phones]:
-            return f"This phone alredy exist!"
-        elif old_phone.value not in [phone.value for phone in self.phones]:
-            return f"This phone not found!"
-        else:
+    def change_phone(self, old_phone: Phone, new_phone: Phone) -> None:
+        if old_phone in self.phones:
             self.remove_phone(old_phone)
             self.add_phone(new_phone)
-            return f"Phone changed."
+            return f"Phone {old_phone} change to {new_phone} for {self.name} contact "
+        return f"Phone {old_phone} for contact {self.name} doesn`t exist"
 
     # Додає birthday
     def add_to_birthday(self, birthday: Birthday) -> None:
@@ -223,6 +219,8 @@ class Record:
             days_birthday = date - current_datetime
             return f"{days_birthday.days} days, {hours} hours, {minutes} minutes, {seconds} seconds"
 
+    def __str__(self):
+        return "{}{}{}".format(self.name, " " + ", ".join([str(p) for p in self.phones]) if self.phones else "", " " + f"{self.days_to_birthday() if self.birthday else ''}")
 
 class IncorrectDateFormat(Exception):
     pass
