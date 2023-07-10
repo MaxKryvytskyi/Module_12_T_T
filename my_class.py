@@ -1,4 +1,5 @@
 import re
+import pickle
 from collections import UserDict
 from datetime import datetime
 
@@ -278,3 +279,14 @@ class AddtextsBook(UserDict):
             text = self.create_print_page(len(dict_contacts), dict_contacts, False)
         
         return text
+    
+    # Зберігає книгу контактів
+    def save_adress_book(self, adress_book):
+        with open("Save_adress_book.bin", "wb") as file:
+            pickle.dump(adress_book, file)
+
+    # Відповідає за завантаження книги контактів яку зберегли минулого разу
+    def load_adress_book(self):
+        with open("Save_adress_book.bin", "rb") as file:
+            deserialized_adress_book = pickle.load(file)
+            return deserialized_adress_book

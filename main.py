@@ -1,34 +1,20 @@
-import pickle
 import re
 
 from my_class import AddtextsBook, Record, Name, Phone, Birthday, IncorrectDateFormat, IncorrectPhoneeFormat
 
 works_bot = True
-adress_book = AddtextsBook()
-
-# Зберігає книгу контактів
-def save_adress_book(adress_book):
-    with open("Save_adress_book.bin", "wb") as file:
-        pickle.dump(adress_book, file)
-
-# Відповідає за завантаження книги контактів яку зберегли минулого разу
-def load_adress_book():
-    with open("Save_adress_book.bin", "rb") as file:
-        deserialized_adress_book = pickle.load(file)
-        return deserialized_adress_book
     
 # Відповідає за те як саме почати роботу
-def start_work_bot():
-    adress_book = AddtextsBook()
+def start_work_bot(adress_book: AddtextsBook):
     while True:
         input_uzer = input("Download contact book? Y/N ---> ").lower()
         if input_uzer in "y n":
             if input_uzer == "y":
                 print("Downloading the contact book...")
-                return load_adress_book()
+                return adress_book.load_adress_book()
             elif input_uzer == "n":
                 print("Creates new contact book...")
-                return adress_book 
+                return adress_book
         else:
             print("The command is not recognized")
             continue
@@ -204,7 +190,7 @@ def handler(uzer_input: str):
 @input_error
 def main():
     while works_bot:
-        save_adress_book(adress_book)
+        adress_book.save_adress_book(adress_book)
         uzer_input = input("-->")
         if not uzer_input:
             print("You have not entered anything")
@@ -216,6 +202,7 @@ def main():
         print(com(*data))
 
 if __name__ == "__main__":
-    load_book = start_work_bot()
+    adress_book = AddtextsBook()
+    load_book = start_work_bot(adress_book)
     if load_book: adress_book = load_book
     main()
