@@ -36,15 +36,15 @@ def start_work_bot():
 # Обробка помилок.
 def input_error(func):
     def inner(*argsi,**kwargs): 
-        # try:
+        try:
             return func(*argsi,**kwargs)
-        # except TypeError: return f"Wrong command"
-        # except IndexError: return f"Enter name and phone separated by a space!"
-        # except ValueError: return f"Incorrect data"
-        # except KeyError: return f"Enter another name."
-        # except AttributeError: return f"Enter command."
-        # except IncorrectDateFormat: return f"Incorrect date format"
-        # except IncorrectPhoneeFormat: return f"Incorrect phone format"
+        except TypeError: return f"Wrong command"
+        except IndexError: return f"Enter name and phone separated by a space!"
+        except ValueError: return f"Incorrect data"
+        except KeyError: return f"Enter another name."
+        except AttributeError: return f"Enter command."
+        except IncorrectDateFormat: return f"Incorrect date format"
+        except IncorrectPhoneeFormat: return f"Incorrect phone format"
     return inner
 
 # Асистент додає ім'я та номер телефону якщо є до книги контактів.
