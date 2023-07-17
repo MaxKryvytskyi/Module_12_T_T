@@ -157,9 +157,9 @@ COMMANDS_LIST = {
 
 # Список команд.
 COMMANDS = {
-    add : ("add", ), # Додає контакт в книгу контактів *
     add_phone : ("add phone", ), # Додає номер телефону до контакту *
     add_birthday : ("add birthday", ), # Додає день народження *
+    add : ("add", ), # Додає контакт в книгу контактів *
     days_to_birthday : ("birthday", ), # Показує скільки днів лишилося до дня народження *
     change_phone: ("change phone", ), # Заміна телефону A на телефон B *
     exit_uzer : ("close", "exit", "good bye"), # Виходить з асистента *
@@ -174,19 +174,11 @@ COMMANDS = {
 # Знаходить команду.
 @input_error    
 def handler(uzer_input: str):
-    found_keywords = []
-    for _, args_com in COMMANDS.items():
+    for command, args_com in COMMANDS.items():
         for a_com in args_com:
             if uzer_input.lower().startswith(a_com):
-                if uzer_input[:len(a_com)].lower() == a_com: found_keywords.append(a_com)
-    comannds = list(filter(lambda x: len(x) == max(len(com) for com in found_keywords), found_keywords))
-    if not comannds:
-        return "There is no such command", None
-    if not comannds: return "There is no such command"
-    for command, kwds in COMMANDS.items():
-        for kwd in kwds:
-            if comannds[0].startswith(kwd) and len(comannds[0]) == len(kwd): return command, uzer_input[len(kwd):].strip().split()
-   
+                if uzer_input[:len(a_com)].lower() == a_com: return command, uzer_input[len(a_com):].strip().split()
+
 @input_error
 def main():
     while works_bot:
