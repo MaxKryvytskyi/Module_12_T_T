@@ -178,6 +178,7 @@ def handler(uzer_input: str):
         for a_com in args_com:
             if uzer_input.lower().startswith(a_com):
                 if uzer_input[:len(a_com)].lower() == a_com: return command, uzer_input[len(a_com):].strip().split()
+    return "There is no such command", None
 
 @input_error
 def main():
